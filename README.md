@@ -1,2 +1,1 @@
-# Spenza
-Spenza Landing Page
+Git Hub
