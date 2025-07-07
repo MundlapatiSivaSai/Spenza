@@ -1,6 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
 
 const LOGOS = [
   {
@@ -26,9 +25,50 @@ const LOGOS = [
 ];
 
 const Hero = () => {
+  const [email, setEmail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Please enter a valid work email.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch(
+        "https://api.hsforms.com/submissions/v3/integration/submit/25414858/2a572b4e-13c6-4f12-b51b-3f5fc14f1a81",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            fields: [{ name: "email", value: email }],
+            context: {
+              pageUri: window.location.href,
+              pageName: document.title,
+            },
+          }),
+        }
+      );
+      if (res.ok) {
+        setSubmitted(true);
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    }
+    setLoading(false);
+  };
+
   return (
     <section className="relative overflow-hidden bg-trail-page-bg pb-10 md:pb-20 lg:pb-24">
-      {/* Header: Logo left, Contact Us right */}
+      {/* Header: Logo left, WhatsApp Chat right */}
       <div className="mx-auto max-w-6xl px-8 pt-4">
         <div className="flex justify-between items-center">
           <img
@@ -37,12 +77,16 @@ const Hero = () => {
             className="h-10 w-auto object-contain"
           />
           <a
-            href="https://spenza.com/"
+            href="https://wa.me/16697775275"
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Button className="bg-white border border-trail-orange text-trail-orange font-semibold px-6 py-2 shadow hover:bg-trail-orange/10 transition-all text-base">
-              Contact Us
+            <Button className="bg-[#25D366] text-white font-semibold px-6 py-2 shadow hover:bg-[#128C7E] transition-all text-base flex items-center gap-2 rounded-full">
+              {/* WhatsApp icon */}
+              <svg width="20" height="20" viewBox="0 0 32 32" fill="currentColor" className="text-white">
+                <path d="M16 2.993C8.82 2.993 2.993 8.82 2.993 16c0 2.816.823 5.466 2.375 7.77L2.1 29.885c-.086.26-.015.545.183.742.197.197.483.269.743.182l6.151-2.236A13.006 13.006 0 0 0 16 29.007C23.18 29.007 29.007 23.18 29.007 16S23.18 2.993 16 2.993zm0 23.55c-2.457 0-4.846-.7-6.886-2.02l-.494-.314-3.655 1.33 1.297-3.781-.322-.488A10.408 10.408 0 0 1 5.592 16C5.592 9.77 10.77 4.592 17 4.592c6.23 0 11.408 5.178 11.408 11.408 0 6.23-5.178 11.408-11.408 11.408zM23.32 19.978c-.328-.164-1.94-.961-2.24-1.07-.299-.109-.516-.164-.734.164-.217.327-.84 1.07-1.03 1.288-.19.217-.379.246-.706.082-.327-.164-1.382-.509-2.634-1.62-.974-.868-1.63-1.939-1.823-2.266-.19-.328-.021-.504.143-.668.147-.146.327-.38.49-.57.163-.19.218-.328.327-.547.109-.217.055-.409-.028-.573-.082-.164-.733-1.77-1.005-2.426-.264-.636-.535-.551-.734-.561l-.623-.012c-.19 0-.495.07-.757.328-.262.259-1 1-1 2.438 0 1.439 1.027 2.828 1.172 3.025.144.198 2.024 3.095 5.014 4.212.7.241 1.243.385 1.669.494.7.178 1.338.153 1.84.093.561-.066 1.94-.791 2.216-1.557.273-.765.273-1.419.191-1.555-.081-.137-.294-.218-.622-.383z" />
+              </svg>
+              Chat with Us
             </Button>
           </a>
         </div>
@@ -63,19 +107,103 @@ const Hero = () => {
             <h2 className="text-base sm:text-lg md:text-xl text-trail-text-secondary mb-8 font-medium">
               Bundle global 4G/5G eSIMs with every device—no contracts, no carrier headaches, no engineering lift.
             </h2>
-            <div className="mb-2">
-              <a
-                href="https://calendly.com/spenza/discovery"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group"
-              >
-                <Button className="bg-trail-orange hover:bg-gradient-to-r hover:from-trail-orange-light hover:to-trail-orange-lighter active:bg-trail-red-medium text-trail-page-bg px-6 py-3 md:px-8 md:py-4 text-base md:text-lg font-semibold shadow-xl hover:shadow-2xl flex items-center transition-all">
-                  Book a Free Demo
-                  <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-                </Button>
-              </a>
+
+            {/* Custom Email Row */}
+            <div className="mb-6">
+              {!submitted ? (
+                <form
+                  onSubmit={handleSubmit}
+                  className="flex w-full max-w-xl mx-auto items-stretch bg-white rounded-full shadow-[0_2px_8px_0_rgba(16,30,54,0.08)] border border-gray-200"
+                  style={{ minHeight: 64, background: "#fff" }}
+                >
+                  <div className="flex items-center px-6">
+                    {/* Email icon */}
+                    <svg
+                      className="w-7 h-7 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      viewBox="0 0 24 24"
+                    >
+                      <rect
+                        x="2"
+                        y="6"
+                        width="20"
+                        height="12"
+                        rx="4"
+                        stroke="currentColor"
+                        fill="none"
+                      />
+                      <path
+                        d="M4 8l8 6 8-6"
+                        stroke="currentColor"
+                        fill="none"
+                      />
+                    </svg>
+                  </div>
+                  <input
+                    type="email"
+                    required
+                    className="flex-1 px-4 py-4 text-lg text-gray-500 bg-transparent focus:outline-none placeholder-gray-400 font-medium rounded-full"
+                    placeholder="Your Work Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    style={{
+                      border: "none",
+                      background: "transparent",
+                    }}
+                    disabled={loading}
+                  />
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="bg-[#FF4500] hover:bg-[#e03e00] transition-all text-white text-lg font-semibold px-10 rounded-full ml-[-2.2rem] shadow flex items-center justify-center"
+                    style={{
+                      border: "none",
+                      borderTopLeftRadius: 0,
+                      borderBottomLeftRadius: 0,
+                      height: "100%",
+                      minHeight: "64px",
+                      zIndex: 1,
+                      minWidth: 180,
+                    }}
+                  >
+                    {loading ? (
+                      <svg
+                        className="animate-spin h-6 w-6 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                        />
+                      </svg>
+                    ) : (
+                      "Book a Free Demo"
+                    )}
+                  </button>
+                </form>
+              ) : (
+                <div className="text-center py-4 font-medium text-green-600">
+                  Thank you! We’ll be in touch soon.
+                </div>
+              )}
+              {error && (
+                <div className="text-center mt-2 text-sm text-red-500">{error}</div>
+              )}
             </div>
+
             {/* Features Row */}
             <div className="flex flex-wrap items-center gap-4 mt-3 mb-4">
               <span className="flex items-center text-sm text-trail-text-secondary bg-trail-orange/10 px-2.5 py-1 rounded-lg">
@@ -132,7 +260,7 @@ const Hero = () => {
         </div>
       </div>
 
-      {/* Trusted By Banner (reduced spacing below) */}
+      {/* Trusted By Banner */}
       <section className="bg-gradient-to-br from-white via-white to-gray-50 py-10 px-4 mt-0 mb-0">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center md:items-start justify-between gap-8">
           {/* Left: Headline */}
