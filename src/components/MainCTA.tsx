@@ -1,41 +1,45 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Mail } from 'lucide-react';
 
+const HUBSPOT_PORTAL_ID = '25414858';
+const HUBSPOT_FORM_ID = '2a572b4e-13c6-4f12-b51b-3f5fc14f1a81'; // Update if needed
+
 const MainCTA = () => {
-  // State and handler for the inline HubSpot form
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setMessage('');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setStatus('error');
-      setMessage('Please enter a valid email address.');
-      return;
-    }
-    setStatus('loading');
+  // Parse email from URL for auto-submit
+  const urlEmail = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    let email = params.get('email') || '';
+    if (email.startsWith('"') && email.endsWith('"')) email = email.slice(1, -1);
+    return email;
+  }, []);
 
+  // Core HubSpot submit logic
+  const submitEmail = async (submitEmail: string, storageKey = 'hubspot_last_submitted_email') => {
+    setStatus('loading');
+    setMessage('');
     try {
       const res = await fetch(
-        `https://api.hsforms.com/submissions/v3/integration/submit/25414858/2a572b4e-13c6-4f12-b51b-3f5fc14f1a81`,
+        `https://api.hsforms.com/submissions/v3/integration/submit/${HUBSPOT_PORTAL_ID}/${HUBSPOT_FORM_ID}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            fields: [{ name: 'email', value: email }],
+            fields: [{ name: 'email', value: submitEmail }],
             context: { pageUri: window.location.href, pageName: document.title },
           }),
         }
       );
-
       if (res.ok) {
         setStatus('success');
         setMessage("Thank you! We'll be in touch soon to schedule your demo.");
         setEmail('');
+        localStorage.setItem(storageKey, submitEmail);
       } else {
-        const errorData = await res.json();
+        const errorData = await res.json().catch(() => ({}));
         setStatus('error');
         setMessage(errorData.message || 'Something went wrong. Please try again.');
       }
@@ -45,9 +49,32 @@ const MainCTA = () => {
     }
   };
 
+  // Manual form submit
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMessage('');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setStatus('error');
+      setMessage('Please enter a valid email address.');
+      return;
+    }
+    await submitEmail(email);
+  };
+
+  // Auto-submit logic (runs once)
+  useEffect(() => {
+    const storageKey = 'hubspot_last_submitted_email';
+    const lastEmail = localStorage.getItem(storageKey) || '';
+    if (urlEmail && urlEmail !== lastEmail) {
+      setEmail(urlEmail);
+      submitEmail(urlEmail, storageKey);
+    }
+    // eslint-disable-next-line
+  }, [urlEmail]);
+
   return (
     <>
-      {/* → New Two-Column Section Above */}
+      {/* Two-Column Section */}
       <section className="py-20 bg-white">
         <div className="mx-auto max-w-5xl px-6 flex flex-col md:flex-row items-center justify-center gap-14">
           {/* Text Side */}
@@ -79,7 +106,7 @@ const MainCTA = () => {
         </div>
       </section>
 
-      {/* → Original MainCTA Section - MODIFIED */}
+      {/* Main CTA Section - MODIFIED */}
       <section className="bg-gradient-to-br from-trail-page-bg via-white to-trail-bg-light py-20 relative overflow-hidden">
         {/* Background Elements */}
         <div className="absolute top-10 left-10 w-40 h-40 bg-trail-orange opacity-5 rounded-full blur-3xl animate-pulse"></div>
@@ -93,7 +120,6 @@ const MainCTA = () => {
             <p className="text-lg md:text-xl text-trail-text-secondary mb-12 mx-auto max-w-3xl">
               Join 100+ brands already earning predictable revenue with Spenza's unified platform
             </p>
-
             {/* Inline HubSpot Form */}
             <div className="animate-fade-in delay-400">
               <div className="max-w-lg mx-auto">
